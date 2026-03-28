@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <meta name="theme-color" content="#3d7a4a"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Трекер"/>
+  <title>Progress Tracker </title>
+  <link rel="manifest" href="manifest.json"/>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    body{
+      font-family:'Nunito',sans-serif;
+      background:linear-gradient(160deg,#cddfc6 0%,#e4ede0 45%,#bfd6b6 100%);
+      min-height:100vh;
+      max-width:420px;
+      margin:0 auto;
+      padding-bottom:40px;
+      color:#2d5c38;
+    }
+    :root{
+      --bg:#e4ede0;
+      --s1:#c2d4bc;
+      --s2:#ffffff;
+      --accent:#3d7a4a;
+      --accent2:#6aad79;
+      --text:#2d5c38;
+      --tl:#7aaa84;
+    }
+    .header{
+      padding:52px 28px 28px;
+      background:linear-gradient(160deg,#62a870 0%,#3d7a4a 65%,#2a5c36 100%);
+      border-radius:0 0 40px 40px;
+      box-shadow:0 10px 30px rgba(45,92,56,.35);
+      margin-bottom:28px;
+    }
+    .header-label{font-size:11px;color:rgba(255,255,255,.6);letter-spacing:4px;text-transform:uppercase;margin-bottom:8px;}
+    .header-sub{font-size:16px;color:rgba(255,255,255,.75);font-weight:600;margin-bottom:4px;}
+    .header-score{font-size:64px;font-weight:900;color:#fff;line-height:1;transition:all .3s;}
+    .header-unit{font-size:20px;color:rgba(255,255,255,.65);font-weight:700;margin-left:10px;}
+    .header-count{font-size:14px;color:rgba(255,255,255,.55);margin-top:6px;}
+    .pad{padding:0 20px;}
+    .card{background:var(--bg);border-radius:24px;box-shadow:7px 7px 16px var(--s1),-7px -7px 16px var(--s2);padding:20px 22px;margin-bottom:16px;}
+    .inset{background:var(--bg);border-radius:16px;box-shadow:inset 5px 5px 12px var(--s1),inset -5px -5px 12px var(--s2);padding:14px 18px;}
+    .tab-bar{display:flex;padding:6px;margin-bottom:20px;border-radius:20px;}
+    .tab-btn{flex:1;padding:11px 0;border:none;border-radius:16px;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;transition:all .2s;background:transparent;color:var(--tl);}
+    .tab-btn.active{background:linear-gradient(135deg,#5a9e6a,#3d7a4a);color:#fff;box-shadow:3px 3px 8px var(--s1),-1px -1px 4px var(--s2);}
+    .big-btn{width:150px;height:150px;border-radius:50%;border:none;cursor:pointer;font-size:52px;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#6cb87a,#3a7548);color:#fff;box-shadow:10px 10px 24px rgba(45,92,56,.4),-4px -4px 14px rgba(255,255,255,.7);transition:transform .1s;font-family:'Nunito',sans-serif;}
+    .big-btn:active{transform:scale(.95);}
+    .level-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+    .level-btn{background:var(--bg);box-shadow:5px 5px 12px var(--s1),-5px -5px 12px var(--s2);border:none;border-radius:22px;cursor:pointer;padding:22px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:'Nunito',sans-serif;transition:all .1s;}
+    .level-btn:active{box-shadow:inset 3px 3px 8px var(--s1),inset -3px -3px 8px var(--s2);}
+    .level-num{font-size:34px;font-weight:900;line-height:1;}
+    .level-desc{font-size:12px;color:var(--tl);font-weight:700;}
+    .cancel-btn{background:var(--bg);box-shadow:5px 5px 12px var(--s1),-5px -5px 12px var(--s2);border:none;border-radius:14px;cursor:pointer;padding:10px 28px;font-size:13px;color:var(--tl);font-family:'Nunito',sans-serif;}
+    .tag{background:var(--bg);border-radius:14px;box-shadow:inset 5px 5px 12px var(--s1),inset -5px -5px 12px var(--s2);padding:8px 16px;display:inline-flex;align-items:center;gap:7px;}
+    .tag-num{font-size:20px;font-weight:900;line-height:1;}
+    .tag-lbl{font-size:11px;color:var(--tl);font-weight:700;}
+    .tags-wrap{display:flex;flex-wrap:wrap;gap:8px;}
+    .section-label{font-size:11px;font-weight:900;color:var(--tl);margin-bottom:14px;letter-spacing:3px;text-transform:uppercase;}
+    .empty{text-align:center;padding:44px 20px;color:var(--tl);font-size:14px;line-height:1.8;}
+    .chart-wrap{width:100%;overflow:visible;}
+    svg text{font-family:'Nunito',sans-serif;}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-label">Трекер продуктивности</div>
+  <div class="header-sub">Сегодня</div>
+  <div style="display:flex;align-items:baseline;">
+    <span class="header-score" id="scoreDisplay">0</span>
+    <span class="header-unit" id="scoreUnit">баллов</span>
+  </div>
+  <div class="header-count" id="countDisplay">0 задач выполнено</div>
+</div>
+
+<div class="pad">
+  <!-- Main tabs -->
+  <div class="inset tab-bar" id="mainTabs">
+    <button class="tab-btn active" data-tab="log">Добавить</button>
+    <button class="tab-btn" data-tab="charts">Графики</button>
+  </div>
+
+  <!-- LOG TAB -->
+  <div id="tab-log">
+    <div class="card" style="text-align:center;" id="addCard">
+      <div id="addMain">
+        <div style="font-size:13px;color:var(--tl);margin-bottom:24px;font-weight:700;">Выполнил задачу?</div>
+        <button class="big-btn" id="mainBtn">✓</button>
+        <div style="font-size:12px;color:var(--tl);margin-top:20px;font-weight:600;">Нажми и выбери сложность</div>
+      </div>
+      <div id="addSelect" style="display:none;">
+        <div style="font-size:14px;color:var(--text);margin-bottom:20px;font-weight:800;">Сложность задачи:</div>
+        <div class="level-grid">
+          <button class="level-btn" data-val="1"><span class="level-num" style="color:#7bc47d;">1</span><span class="level-desc">Лёгкая</span></button>
+          <button class="level-btn" data-val="2"><span class="level-num" style="color:#f5c842;">2</span><span class="level-desc">Средняя</span></button>
+          <button class="level-btn" data-val="3"><span class="level-num" style="color:#f5954a;">3</span><span class="level-desc">Сложная</span></button>
+          <button class="level-btn" data-val="4"><span class="level-num" style="color:#e05555;">4</span><span class="level-desc">Жёсткая</span></button>
+        </div>
+        <button class="cancel-btn" id="cancelBtn">Отмена</button>
+      </div>
+    </div>
+
+    <div class="card" id="todayLog" style="display:none;">
+      <div class="section-label">Сегодня</div>
+      <div class="tags-wrap" id="tagsList"></div>
+    </div>
+  </div>
+
+  <!-- CHARTS TAB -->
+  <div id="tab-charts" style="display:none;">
+    <div class="inset tab-bar" id="periodTabs">
+      <button class="tab-btn active" data-period="day">Дни</button>
+      <button class="tab-btn" data-period="week">Недели</button>
+      <button class="tab-btn" data-period="month">Месяцы</button>
+      <button class="tab-btn" data-period="year">Годы</button>
+    </div>
+
+    <div id="chartsEmpty" class="card empty" style="display:none;">Пока нет данных.<br>Добавь первые задачи!</div>
+
+    <div id="chartsContent">
+      <div class="card">
+        <div class="section-label">Столбчатый</div>
+        <div id="barChartWrap"></div>
+      </div>
+      <div class="card">
+        <div class="section-label">Холмы</div>
+        <div id="areaChartWrap"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLORS = {1:'#7bc47d',2:'#f5c842',3:'#f5954a',4:'#e05555'};
+const LABELS = {1:'Лёгкая',2:'Средняя',3:'Сложная',4:'Жёсткая'};
+const STORAGE_KEY = 'prod_tracker_v3';
+
+let entries = [];
+let activeTab = 'log';
+let activePeriod = 'day';
+
+function load() {
+  try { entries = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { entries = []; }
+}
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+}
+
+function getTodayKey() {
+  return new Date().toISOString().slice(0,10);
+}
+
+function getWeekStart(dateStr) {
+  const d = new Date(dateStr);
+  const day = d.getDay() || 7;
+  d.setDate(d.getDate() - day + 1);
+  return d.toISOString().slice(0,10);
+}
+
+function formatLabel(key, period) {
+  if (period === 'day') { const [,m,d] = key.split('-'); return `${d}.${m}`; }
+  if (period === 'week') { const s = new Date(key); return `${s.getDate()}.${String(s.getMonth()+1).padStart(2,'0')}`; }
+  if (period === 'month') { const mn=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек']; return mn[parseInt(key.split('-')[1])-1]; }
+  return key;
+}
+
+function buildData(period) {
+  const map = {};
+  entries.forEach(e => {
+    let key;
+    if (period === 'day') key = e.date;
+    else if (period === 'week') key = getWeekStart(e.date);
+    else if (period === 'month') key = e.date.slice(0,7);
+    else key = e.date.slice(0,4);
+    map[key] = (map[key] || 0) + e.val;
+  });
+  return Object.entries(map).sort(([a],[b])=>a.localeCompare(b)).slice(-12)
+    .map(([k,score]) => ({label: formatLabel(k, period), score}));
+}
+
+function pluralTasks(n) {
+  if (n % 10 === 1 && n % 100 !== 11) return 'задача';
+  if ([2,3,4].includes(n%10) && ![12,13,14].includes(n%100)) return 'задачи';
+  return 'задач';
+}
+
+function updateHeader() {
+  const today = entries.filter(e => e.date === getTodayKey());
+  const score = today.reduce((s,e) => s+e.val, 0);
+  document.getElementById('scoreDisplay').textContent = score;
+  document.getElementById('scoreUnit').textContent = 'баллов';
+  document.getElementById('countDisplay').textContent = `${today.length} ${pluralTasks(today.length)} выполнено`;
+}
+
+function updateTodayLog() {
+  const today = entries.filter(e => e.date === getTodayKey()).reverse();
+  const logEl = document.getElementById('todayLog');
+  const list = document.getElementById('tagsList');
+  if (today.length === 0) { logEl.style.display = 'none'; return; }
+  logEl.style.display = 'block';
+  list.innerHTML = today.map(e => `
+    <div class="tag">
+      <span class="tag-num" style="color:${COLORS[e.val]}">${e.val}</span>
+      <span class="tag-lbl">${LABELS[e.val]}</span>
+    </div>
+  `).join('');
+}
+
+// SVG Chart helpers
+function drawBarChart(containerId, data) {
+  const el = document.getElementById(containerId);
+  if (!data.length) { el.innerHTML = ''; return; }
+  const W = el.offsetWidth || 340;
+  const H = 190;
+  const pb = 28, pt = 10, pl = 30, pr = 10;
+  const cw = W - pl - pr;
+  const ch = H - pt - pb;
+  const maxVal = Math.max(...data.map(d=>d.score), 1);
+  const bw = Math.min(24, (cw / data.length) - 6);
+  const gap = cw / data.length;
+
+  let bars = '', labels = '', yticks = '';
+  // Y axis ticks
+  for (let i = 0; i <= 4; i++) {
+    const v = Math.round(maxVal * i / 4);
+    const y = pt + ch - (ch * i / 4);
+    yticks += `<line x1="${pl-4}" y1="${y}" x2="${W-pr}" y2="${y}" stroke="#c2d4bc" stroke-width="1"/>`;
+    yticks += `<text x="${pl-6}" y="${y+4}" text-anchor="end" font-size="9" fill="#7aaa84" font-weight="700">${v}</text>`;
+  }
+
+  data.forEach((d, i) => {
+    const x = pl + gap * i + gap/2;
+    const barH = (d.score / maxVal) * ch;
+    const y = pt + ch - barH;
+    bars += `<defs><linearGradient id="bg${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#72b880"/><stop offset="100%" stop-color="#3a7548"/></linearGradient></defs>`;
+    bars += `<rect x="${x - bw/2}" y="${y}" width="${bw}" height="${barH}" rx="6" ry="6" fill="url(#bg${i})"/>`;
+    labels += `<text x="${x}" y="${H-6}" text-anchor="middle" font-size="10" fill="#7aaa84" font-weight="700">${d.label}</text>`;
+  });
+
+  el.innerHTML = `<svg width="100%" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${yticks}${bars}${labels}</svg>`;
+}
+
+function drawAreaChart(containerId, data) {
+  const el = document.getElementById(containerId);
+  if (!data.length) { el.innerHTML = ''; return; }
+  const W = el.offsetWidth || 340;
+  const H = 190;
+  const pb = 28, pt = 10, pl = 30, pr = 10;
+  const cw = W - pl - pr;
+  const ch = H - pt - pb;
+  const maxVal = Math.max(...data.map(d=>d.score), 1);
+
+  const pts = data.map((d, i) => {
+    const x = pl + (i / Math.max(data.length-1, 1)) * cw;
+    const y = pt + ch - (d.score / maxVal) * ch;
+    return {x, y, score: d.score, label: d.label};
+  });
+
+  // Smooth path using cubic bezier
+  function smoothPath(points) {
+    if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+    let d = `M ${points[0].x} ${points[0].y}`;
+    for (let i = 0; i < points.length - 1; i++) {
+      const cp1x = points[i].x + (points[i+1].x - points[i].x) * 0.5;
+      const cp1y = points[i].y;
+      const cp2x = points[i].x + (points[i+1].x - points[i].x) * 0.5;
+      const cp2y = points[i+1].y;
+      d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${points[i+1].x} ${points[i+1].y}`;
+    }
+    return d;
+  }
+
+  const linePath = smoothPath(pts);
+  const areaPath = linePath + ` L ${pts[pts.length-1].x} ${pt+ch} L ${pts[0].x} ${pt+ch} Z`;
+
+  let yticks = '';
+  for (let i = 0; i <= 4; i++) {
+    const v = Math.round(maxVal * i / 4);
+    const y = pt + ch - (ch * i / 4);
+    yticks += `<line x1="${pl-4}" y1="${y}" x2="${W-pr}" y2="${y}" stroke="#c2d4bc" stroke-width="1"/>`;
+    yticks += `<text x="${pl-6}" y="${y+4}" text-anchor="end" font-size="9" fill="#7aaa84" font-weight="700">${v}</text>`;
+  }
+
+  const dots = pts.map(p => `<circle cx="${p.x}" cy="${p.y}" r="5" fill="#3d7a4a"/>`).join('');
+  const xlabels = pts.map((p, i) => {
+    if (data.length <= 6 || i % Math.ceil(data.length/6) === 0)
+      return `<text x="${p.x}" y="${H-6}" text-anchor="middle" font-size="10" fill="#7aaa84" font-weight="700">${p.label}</text>`;
+    return '';
+  }).join('');
+
+  el.innerHTML = `<svg width="100%" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#5a9e6a" stop-opacity="0.55"/>
+        <stop offset="100%" stop-color="#5a9e6a" stop-opacity="0.03"/>
+      </linearGradient>
+    </defs>
+    ${yticks}
+    <path d="${areaPath}" fill="url(#ag)"/>
+    <path d="${linePath}" fill="none" stroke="#3d7a4a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    ${dots}
+    ${xlabels}
+  </svg>`;
+}
+
+function updateCharts() {
+  const data = buildData(activePeriod);
+  const empty = document.getElementById('chartsEmpty');
+  const content = document.getElementById('chartsContent');
+  if (data.length === 0) {
+    empty.style.display = 'block';
+    content.style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+  content.style.display = 'block';
+  setTimeout(() => {
+    drawBarChart('barChartWrap', data);
+    drawAreaChart('areaChartWrap', data);
+  }, 10);
+}
+
+function setTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('#mainTabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.getElementById('tab-log').style.display = tab === 'log' ? 'block' : 'none';
+  document.getElementById('tab-charts').style.display = tab === 'charts' ? 'block' : 'none';
+  if (tab === 'charts') updateCharts();
+}
+
+function setPeriod(p) {
+  activePeriod = p;
+  document.querySelectorAll('#periodTabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.period === p));
+  updateCharts();
+}
+
+function showSelect(show) {
+  document.getElementById('addMain').style.display = show ? 'none' : 'block';
+  document.getElementById('addSelect').style.display = show ? 'block' : 'none';
+}
+
+function flashScore(val) {
+  const el = document.getElementById('scoreDisplay');
+  const unit = document.getElementById('scoreUnit');
+  el.textContent = '+' + val;
+  unit.textContent = '';
+  setTimeout(() => { updateHeader(); }, 900);
+}
+
+// Events
+document.getElementById('mainBtn').addEventListener('click', () => showSelect(true));
+document.getElementById('cancelBtn').addEventListener('click', () => showSelect(false));
+
+document.querySelectorAll('.level-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const val = parseInt(btn.dataset.val);
+    entries.push({ val, date: getTodayKey(), ts: Date.now() });
+    save();
+    flashScore(val);
+    updateTodayLog();
+    showSelect(false);
+  });
+});
+
+document.querySelectorAll('#mainTabs .tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => setTab(btn.dataset.tab));
+});
+
+document.querySelectorAll('#periodTabs .tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => setPeriod(btn.dataset.period));
+});
+
+window.addEventListener('resize', () => { if (activeTab === 'charts') updateCharts(); });
+
+// Init
+load();
+updateHeader();
+updateTodayLog();
+
+// PWA Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
