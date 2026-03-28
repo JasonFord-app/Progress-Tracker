@@ -1,0 +1,18 @@
+{
+  "name": "Трекер продуктивности",
+  "short_name": "Трекер",
+  "description": "Отслеживай продуктивность по сложности задач",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#e4ede0",
+  "theme_color": "#3d7a4a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
